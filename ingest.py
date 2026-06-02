@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 from pathlib import Path
 
 import chromadb
+from chromadb.errors import NotFoundError
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -15,6 +17,15 @@ DEFAULT_DOCUMENTS_DIR = "documents"
 DEFAULT_CHROMA_DIR = "chroma_db"
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 SUPPORTED_EXTENSIONS = {".txt", ".md"}
+PROJECT_DIR = Path(__file__).resolve().parent
+TOKEN_PATTERN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
+
+
+def resolve_project_path(path: str) -> Path:
+    parsed = Path(path)
+    if parsed.is_absolute():
+        return parsed
+    return PROJECT_DIR / parsed
 
 
 def read_documents(documents_dir: Path) -> list[dict[str, str]]:
@@ -35,17 +46,28 @@ def read_documents(documents_dir: Path) -> list[dict[str, str]]:
     return documents
 
 
+def tokenize(text: str) -> list[str]:
+    return TOKEN_PATTERN.findall(text)
+
+
+def detokenize(tokens: list[str]) -> str:
+    text = " ".join(tokens)
+    text = re.sub(r"\s+([.,!?;:%)\]}])", r"\1", text)
+    text = re.sub(r"([(\[{])\s+", r"\1", text)
+    return text.strip()
+
+
 def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
     if overlap >= chunk_size:
         raise ValueError("overlap must be smaller than chunk_size")
 
-    words = text.split()
+    tokens = tokenize(text)
     chunks = []
     start = 0
 
-    while start < len(words):
+    while start < len(tokens):
         end = start + chunk_size
-        chunk = " ".join(words[start:end]).strip()
+        chunk = detokenize(tokens[start:end])
         if chunk:
             chunks.append(chunk)
         start += chunk_size - overlap
@@ -113,12 +135,15 @@ def build_index(
     if reset:
         try:
             chroma_client.delete_collection(collection_name)
-        except ValueError:
+        except (NotFoundError, ValueError):
             pass
 
     collection = chroma_client.get_or_create_collection(
         name=collection_name,
-        metadata={"embedding_model": embedding_model},
+        metadata={
+            "embedding_model": embedding_model,
+            "hnsw:space": "cosine",
+        },
     )
 
     embeddings = embed_texts(
@@ -148,8 +173,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chroma-dir", default=DEFAULT_CHROMA_DIR)
     parser.add_argument("--collection", default=DEFAULT_COLLECTION)
     parser.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
-    parser.add_argument("--chunk-size", type=int, default=350)
-    parser.add_argument("--overlap", type=int, default=60)
+    parser.add_argument("--chunk-size", type=int, default=256)
+    parser.add_argument("--overlap", type=int, default=50)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--no-reset", action="store_true", help="Keep existing collection data.")
     return parser.parse_args()
@@ -158,8 +183,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     build_index(
-        documents_dir=Path(args.documents_dir),
-        chroma_dir=Path(args.chroma_dir),
+        documents_dir=resolve_project_path(args.documents_dir),
+        chroma_dir=resolve_project_path(args.chroma_dir),
         collection_name=args.collection,
         embedding_model=args.embedding_model,
         chunk_size=args.chunk_size,
