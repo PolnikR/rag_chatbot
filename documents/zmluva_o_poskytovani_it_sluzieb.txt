@@ -1,0 +1,54 @@
+ZMLUVA O POSKYTOVANÍ IT SLUŽIEB, TECHNICKEJ PODPORE A GARANCII ÚROVNE SLUŽIEB (SLA)
+Registračné číslo zmluvy: Alpha-2026-0894-ZML
+
+Zmluvné strany:
+
+Poskytovateľ:
+Alpha Tech Solutions s.r.o.
+Sídlo: Mlynské nivy 44, 821 09 Bratislava, Slovenská republika
+IČO: 45 678 912 | DIČ: 2023456789 | IČ DPH: SK2023456789
+Zápis v Obchodnom registri Mestského súdu Bratislava III, oddiel: Sro, vložka číslo: 12345/B
+Zastúpený: Ing. Radovanom Kľúčovým, konateľom
+(ďalej len „Poskytovateľ“)
+
+a
+
+Objednávateľ:
+Skvelý E-shop a.s.
+Sídlo: Hlavná 12, 010 01 Žilina, Slovenská republika
+IČO: 31 234 567 | DIČ: 2021122334 | IČ DPH: SK2021122334
+Zápis v Obchodnom registri Mestského súdu Žilina, oddiel: Sa, vložka číslo: 9876/L
+Zastúpený: Mgr. Jánom Predajcom, predsedom predstavenstva
+(ďalej len „Objednávateľ“)
+
+(Poskytovateľ a Objednávateľ ďalej spoločne len „Zmluvné strany“ alebo jednotlivo „Zmluvná strana“)
+
+ČLÁNOK I. – DEFINÍCIE POJMOV
+1.1 „Incident“ znamená akúkoľvek odchýlku od štandardnej prevádzky Informačného systému, ktorá spôsobuje alebo môže spôsobiť prerušenie, zníženie kvality alebo úplnú nedostupnosť Služieb.
+1.2 „Dostupnosť systému“ predstavuje percentuálne vyjadrenie času, počas ktorého je produkčné prostredie Informačného systému plne funkčné a prístupné koncovým používateľom Objednávateľa v rámci jedného kalendárneho mesiaca.
+1.3 „Reakčná doba“ je časový úsek meraný od momentu preukázateľného nahlásenia Incidentu Objednávateľom prostredníctvom ticketovacieho systému Poskytovateľa (Jira Service Desk) do momentu, kedy Poskytovateľ potvrdí prijatie ticketu, priradí ho dedikovanému špecialistovi a začne s jeho aktívnym riešením.
+1.4 „Doba na odstránenie chyby (Resolution Time)“ je časový úsek od nahlásenia Incidentu do momentu, kedy je funkčnosť Služby plne obnovená, alebo je nasadené alternatívne dočasné riešenie (Workaround), ktoré preukázateľne eliminuje negatívne biznis dopady Incidentu.
+
+ČLÁNOK V. – ÚROVNE POSKYTOVANÝCH SLUŽIEB (SLA)
+5.1 Poskytovateľ je povinný zabezpečiť nepretržitú Dostupnosť systému na úrovni 99,8 % v režime 24/7/365, s výnimkou vopred plánovaných okien údržby, ktoré nesmú presiahnuť 4 hodiny v jednom kalendárnom mesiaci a musia byť Objednávateľovi oznámené najmenej 5 pracovných dní vopred.
+5.2 Zmluvné strany sa dohodli na kategorizácii a záväzných časových limitoch pre riešenie Incidentov nasledovne:
+
+a) PRIORITA 1 (Kritický incident):
+Stav, kedy nastal úplný výpadok produkčného prostredia e-shopu, dochádza k masívnej strate dát, alebo esenciálne funkcie core systému nie sú pre používateľov dostupné (napr. kompletne nefunkčný platobný modul alebo nákupný košík, kritická zraniteľnosť API umožňujúca únik databázy).
+- Reakčná doba: najneskôr do 30 minút od preukázateľného nahlásenia.
+- Doba na odstránenie chyby: najneskôr do 4 hodín od potvrdenia prijatia Incidentu.
+
+b) PRIORITA 2 (Vysoký incident):
+Stav, kedy je funkčnosť e-shopu alebo administrácie výrazne obmedzená, čo má priamy negatívny dopad na prebiehajúce obchodné operácie (napr. nefunkčnosť generovania faktúr, nefunkčnosť vyhľadávania na webe, zlyhanie integrácie na kurérske služby), avšak jadro systému funguje a existuje schválené alternatívne riešenie.
+- Reakčná doba: najneskôr do 2 hodín od preukázateľného nahlásenia.
+- Doba na odstránenie chyby: najneskôr do 24 hodín od potvrdenia priradenia ticketu.
+
+c) PRIORITA 3 (Nízky incident / Kozmetická vada):
+Stav, kedy ide o drobné anomálie v používateľskom rozhraní, nesprávne zobrazenie grafických prvkov na dashboarde, chyby v prekladoch, alebo nefunkčnosť reportovacích nástrojov pre backoffice, ktoré nijakým spôsobom neblokujú expedíciu tovaru ani nákupný proces zákazníkov.
+- Reakčná doba: najneskôr do 12 hodín od nahlásenia.
+- Doba na odstránenie chyby: najneskôr do 5 pracovných dní od zaevidovania.
+
+ČLÁNOK VI. – FINANČNÉ KOMPENZÁCIE, SANKCIE A ZMLUVNÉ POKUTY
+6.1 V prípade preukázateľného porušenia povinností Poskytovateľa spočívajúcich v nedodržaní Doby na odstránenie chyby pri incidente spadajúcom pod Prioritu 1 (Kritický incident), vzniká Objednávateľovi právny nárok na uplatnenie zmluvnej pokuty voči Poskytovateľovi. Táto pokuta je stanovená vo výške 500 EUR (slovom: päťsto eur) za každú, a to aj začatú hodinu omeškania s vyriešením predmetného Incidentu. Pokuta sa začína počítať od prvej minúty nasledujúcej po uplynutí 4-hodinového limitu definovaného v bode 5.2 písm. a) tohto článku.
+6.2 Pokiaľ Poskytovateľ nesplní záväzok reakčnej doby pri incidente klasifikovanom ako Priorita 2, je Objednávateľ oprávnený požadovať jednorazovú zľavu z fakturovaného mesačného paušálu za dané zúčtovacie obdobie vo výške 50 EUR za každý jednotlivý prípad porušenia, pričom takéto prípady sa na konci mesiaca kumulujú.
+6.3 Zmluvné strany výslovne konsenzuálne vyhlasujú, že celkový finančný úhrn všetkých sankcií, zmluvných pokút a nárokov na zľavy uplatnených Objednávateľom voči Poskytovateľovi z dôvodu porušenia SLA parametrov v rámci jedného kalendárneho mesiaca je striktne limitovaný. Maximálna možná penalizácia nesmie za žiadnych okolností presiahnuť hranicu 30 % z celkovej fixnej zmluvnej ceny mesačného paušálu za podporu. Fixný mesačný paušál bol dohodou stanovený na čiastku 4 000 EUR (slovom: štyritisíc eur) bez DPH. Zaplatením zmluvnej pokuty nie je dotknutý nárok Objednávateľa na náhradu škody v rozsahu presahujúcom zaplatenú zmluvnú pokutu.

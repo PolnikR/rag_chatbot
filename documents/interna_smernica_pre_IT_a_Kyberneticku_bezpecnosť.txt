@@ -1,0 +1,22 @@
+INTERNÁ SMERNICA SPOLOČNOSTI – KÓD: SEC-2026-V2
+Názov dokumentu: Komplexná bezpečnostná politika prístupov, správy hesiel a ochrany perimetra
+Dátum vydania: 15. december 2025 | Účinnosť od: 1. január 2026
+Garant a autor: Ing. Peter Bezpečný, CISO (Chief Information Security Officer)
+Schválil: Výbor pre riadenie rizík a predstavenstvo spoločnosti
+
+1. ÚČEL A ROZSAH PÔSOBNOSTI
+1.1 Účelom tejto internej smernice (ďalej len „Smernica“) je definovať záväzné minimálne požiadavky na zaistenie informačnej a kybernetickej bezpečnosti v rámci celej korporátnej infraštruktúry. Smernica reaguje na moderné vektory kybernetických hrozieb a legislatívne požiadavky kladené na ochranu citlivých dát a digitálnych systémov.
+1.2 Táto Smernica je bezvýnimočne platná a záväzná pre všetkých kmeňových zamestnancov spoločnosti, externých dodávateľov, konzultantov, stážistov a akékoľvek tretie strany, ktorým bol na základe zmluvného vzťahu pridelený legitímny prístup do internej siete, lokálnych databáz, cloudových repozitárov, produkčných prostredí alebo ku korporátnym aplikáciám vrátane analytických dashboardov a ERP systémov.
+
+2. METODIKA TVORBY A KOMPLEXNOSTI POUŽÍVATEĽSKÝCH HESIEL
+2.1 Autentizácia do všetkých informačných systémov spoločnosti prebieha na báze unikátneho používateľského identifikátora a silného tajného hesla. Všetci používatelia popísaní v bode 1.2 sú povinní striktne dodržiavať nasledovné konštrukčné pravidlá pre generovanie nových prístupových hesiel:
+a) Dĺžka hesla: Minimálna povolená dĺžka hlavného prístupového hesla je striktne stanovená na 14 alfanumerických znakov. Kratšie heslá nebudú systémom Active Directory akceptované.
+b) Skladba znakov: Heslo musí predstavovať náhodnú alebo pseudo-náhodnú kombináciu, ktorá obligatórne obsahuje aspoň jedno veľké písmeno (A-Z), aspoň jedno malé písmeno (a-z), minimálne jednu arabskú číslicu (0-9) a minimálne jeden špeciálny, netextový znak (povolené sú výhradne tieto symboly: @, #, $, *, &, !, ?, _, -).
+c) Zákaz osobných a predvídateľných väzieb: V tele hesla sa nesmie nachádzať žiadna logická väzba na osobu používateľa. Je prísne zakázané zakomponovať do štruktúry hesla krstné meno používateľa, jeho priezvisko, mená rodinných príslušníkov, domáce zvieratá, model súkromného či služobného vozidla, dátum narodenia, rodné číslo, telefónne číslo alebo názov spoločnosti a jej dcérskych entít.
+d) Zákaz sekvencií a repeticí: Heslo nesmie obsahovať po sebe idúce klávesové sekvencie (ako napr. populárne, no vysoko rizikové reťazce typu „12345678“, „qwertyuiop“, „asdfghjkl“), opakujúce sa identické znaky (napr. „aaaaa“, „11111“) alebo zrkadlové slová.
+
+3. ŽIVOTNÝ CYKLUS HESIEL, EXSPIRÁCIA A REUSE POLITIKA
+3.1 S cieľom minimalizovať riziko zneužitia dlhodobo nezmenených prístupových údajov sa zavádza povinný cyklus rotácie. Maximálna doba platnosti prístupového hesla do primárneho firemného účtu (Active Directory, Microsoft 365, VPN a privilegované účty) je obmedzená na 90 kalendárnych dní.
+3.2 Po uplynutí 90 dní od poslednej modifikácie systém automaticky zablokuje prístup k aplikáciám (s výnimkou samoobslužného portálu pre zmenu hesla) a vyzve používateľa na okamžitú obmenu.
+3.3 Politika opätovného použitia (Reuse Policy): Centralizovaný bezpečnostný systém uchováva históriu predchádzajúcich hesiel. Používateľovi je technicky znemožnené nastaviť si ako nové heslo také, ktoré sa zhoduje s niektorým z jeho posledných 5 predchádzajúcich hesiel.
+3.4 Vynútená predčasná exspirácia: V prípade, že Bezpečnostný operačný tím (SOC) alebo administrátor infraštruktúry identifikuje anomálne správanie účtu, pokusy o brute-force útok, alebo získa hodnovernú informáciu o možnom úniku či kompromitácii prihlasovacích údajov daného zamestnanca, má CISO a ním poverené osoby právo okamžite a bez predchádzajúceho varovania vynútiť reset hesla a deaktivovať účet až do úspešnej fyzickej verifikácie totožnosti zamestnanca.
