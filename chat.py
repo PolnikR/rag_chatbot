@@ -55,7 +55,8 @@ def answer_question(
                     "You are a RAG assistant. Answer only from the provided context. "
                     "If the context does not contain the answer, say: "
                     "'I do not have enough information in the indexed documents.' "
-                    "Keep the answer concise and cite source numbers when useful."
+                    "Every factual claim must cite at least one source number like [Source 1]. "
+                    "Keep the answer concise."
                 ),
             },
             {
