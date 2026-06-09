@@ -9,12 +9,9 @@ import chromadb
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from rag.retrieval.bm25 import BM25Retriever
-from rag.retrieval.hybrid import HybridRetriever
+from rag.pipelines.hybrid_search_pipeline import HybridSearchPipeline
 from rag.retrieval.vector import (
-    ChromaVectorRetriever,
     OpenAIEmbeddingClient,
-    load_chunks_from_chroma,
 )
 
 
@@ -249,18 +246,11 @@ def query_rag(
             client=embedding_client,
             model=embedding_model,
         )
-        vector_retriever = ChromaVectorRetriever(
+        retrieval_pipeline = HybridSearchPipeline.from_chroma(
             collection=collection,
             embedding_client=openai_embedding_client,
         )
-        chunks = load_chunks_from_chroma(collection)
-        bm25_retriever = BM25Retriever()
-        bm25_retriever.index(chunks)
-        hybrid_retriever = HybridRetriever(
-            vector_retriever=vector_retriever,
-            bm25_retriever=bm25_retriever,
-        )
-        retrieval_results = hybrid_retriever.retrieve(
+        retrieval_results = retrieval_pipeline.retrieve(
             query=question,
             top_k=top_k,
             candidate_k=candidate_k,
