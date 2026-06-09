@@ -9,6 +9,14 @@ import chromadb
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from rag.retrieval.bm25 import BM25Retriever
+from rag.retrieval.hybrid import HybridRetriever
+from rag.retrieval.vector import (
+    ChromaVectorRetriever,
+    OpenAIEmbeddingClient,
+    load_chunks_from_chroma,
+)
+
 
 PROJECT_DIR = Path(__file__).resolve().parent
 DEFAULT_COLLECTION = "rag_documents"
@@ -76,6 +84,21 @@ def format_context(documents: list[str], metadatas: list[dict], distances: list[
         blocks.append(
             f"[Source {i}: {source}, chunk {chunk_index}, distance {distance:.4f}]\n"
             f"{document}"
+        )
+    return "\n\n---\n\n".join(blocks)
+
+
+def format_search_results_context(results) -> str:
+    blocks = []
+    for i, result in enumerate(results, start=1):
+        metadata = result.metadata
+        source = metadata.get("source", "unknown")
+        chunk_index = metadata.get("chunk_index", "?")
+        distance = metadata.get("distance")
+        distance_text = f", distance {distance:.4f}" if isinstance(distance, float) else ""
+        blocks.append(
+            f"[Source {i}: {source}, chunk {chunk_index}{distance_text}]\n"
+            f"{result.text}"
         )
     return "\n\n---\n\n".join(blocks)
 
@@ -188,6 +211,8 @@ def query_rag(
     llm_provider: str,
     llm_model: str,
     top_k: int,
+    retrieval_mode: str,
+    candidate_k: int,
     show_stats: bool,
 ) -> None:
     load_dotenv()
@@ -201,26 +226,54 @@ def query_rag(
     collection = chroma_client.get_collection(collection_name)
 
     embed_start = time.perf_counter()
-    query_embedding, query_embedding_tokens = embed_query(embedding_client, question, embedding_model)
+    query_embedding_tokens = estimate_tokens(question)
+    query_embedding = None
+    if retrieval_mode == "vector":
+        query_embedding, query_embedding_tokens = embed_query(embedding_client, question, embedding_model)
     embed_ms = (time.perf_counter() - embed_start) * 1000
 
     vector_start = time.perf_counter()
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=top_k,
-        include=["documents", "metadatas", "distances"],
-    )
+    if retrieval_mode == "vector":
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            include=["documents", "metadatas", "distances"],
+        )
+        documents = results["documents"][0]
+        metadatas = results["metadatas"][0]
+        distances = results["distances"][0]
+        context = format_context(documents, metadatas, distances)
+        retrieval_results = None
+    else:
+        openai_embedding_client = OpenAIEmbeddingClient(
+            client=embedding_client,
+            model=embedding_model,
+        )
+        vector_retriever = ChromaVectorRetriever(
+            collection=collection,
+            embedding_client=openai_embedding_client,
+        )
+        chunks = load_chunks_from_chroma(collection)
+        bm25_retriever = BM25Retriever()
+        bm25_retriever.index(chunks)
+        hybrid_retriever = HybridRetriever(
+            vector_retriever=vector_retriever,
+            bm25_retriever=bm25_retriever,
+        )
+        retrieval_results = hybrid_retriever.retrieve(
+            query=question,
+            top_k=top_k,
+            candidate_k=candidate_k,
+        )
+        documents = [result.text for result in retrieval_results]
+        metadatas = [result.metadata for result in retrieval_results]
+        distances = [result.metadata.get("distance", 0.0) for result in retrieval_results]
+        context = format_search_results_context(retrieval_results)
     vector_ms = (time.perf_counter() - vector_start) * 1000
-
-    documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    distances = results["distances"][0]
 
     if not documents:
         print("No matching chunks found.")
         return
-
-    context = format_context(documents, metadatas, distances)
     llm_start = time.perf_counter()
     answer, llm_input_tokens, llm_output_tokens = answer_question(
         llm_client,
@@ -247,10 +300,16 @@ def query_rag(
 
     print("\nRetrieved chunks")
     print("-" * 60)
-    for i, (metadata, distance) in enumerate(zip(metadatas, distances), start=1):
-        source = metadata.get("source", "unknown")
-        chunk_index = metadata.get("chunk_index", "?")
-        print(f"{i}. {source} / chunk {chunk_index} / distance {distance:.4f}")
+    if retrieval_results is None:
+        for i, (metadata, distance) in enumerate(zip(metadatas, distances), start=1):
+            source = metadata.get("source", "unknown")
+            chunk_index = metadata.get("chunk_index", "?")
+            print(f"{i}. {source} / chunk {chunk_index} / distance {distance:.4f}")
+    else:
+        for i, result in enumerate(retrieval_results, start=1):
+            source = result.metadata.get("source", "unknown")
+            chunk_index = result.metadata.get("chunk_index", "?")
+            print(f"{i}. {source} / chunk {chunk_index} / hybrid score {result.score:.4f}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -269,6 +328,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--llm-provider", choices=["openai", "deepseek"], default=default_llm_provider)
     parser.add_argument("--llm-model", default=default_llm_model)
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--candidate-k", type=int, default=20)
+    parser.add_argument("--retrieval-mode", choices=["vector", "hybrid"], default="hybrid")
     parser.add_argument("--no-stats", action="store_true", help="Hide latency and cost stats.")
     return parser.parse_args()
 
@@ -287,6 +348,8 @@ def main() -> None:
             llm_provider=args.llm_provider,
             llm_model=args.llm_model,
             top_k=args.top_k,
+            retrieval_mode=args.retrieval_mode,
+            candidate_k=args.candidate_k,
             show_stats=not args.no_stats,
         )
         return
@@ -306,6 +369,8 @@ def main() -> None:
             llm_provider=args.llm_provider,
             llm_model=args.llm_model,
             top_k=args.top_k,
+            retrieval_mode=args.retrieval_mode,
+            candidate_k=args.candidate_k,
             show_stats=not args.no_stats,
         )
 
