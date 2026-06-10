@@ -28,8 +28,11 @@ def render_sources(retrieval_results) -> None:
         source = result.metadata.get("source", "unknown")
         chunk_index = result.metadata.get("chunk_index", "?")
         mode = result.metadata.get("retrieval_mode", "retrieval")
+        reranker = result.metadata.get("reranker")
         pre_rerank = result.metadata.get("pre_rerank_score")
         score_label = f"{mode} score {result.score:.4f}"
+        if reranker:
+            score_label += f" | reranker {reranker}"
         if isinstance(pre_rerank, float):
             score_label += f" | pre-rerank {pre_rerank:.4f}"
 
@@ -80,6 +83,21 @@ def main() -> None:
         )
         top_k = st.slider("Top K", min_value=1, max_value=15, value=5)
         candidate_k = st.slider("Candidate K", min_value=5, max_value=50, value=20)
+        reranker_mode = st.selectbox(
+            "Reranker",
+            options=[
+                "simple",
+                "none",
+                "cross_encoder",
+                "cohere",
+                "voyage",
+                "jina",
+                "bge",
+                "colbert",
+            ],
+            index=0,
+            disabled=retrieval_mode != "hybrid",
+        )
 
         st.subheader("Models")
         llm_provider = st.selectbox(
@@ -129,6 +147,7 @@ def main() -> None:
                     top_k=top_k,
                     retrieval_mode=retrieval_mode,
                     candidate_k=candidate_k,
+                    reranker_mode=reranker_mode,
                 )
             except Exception as exc:
                 st.error(str(exc))

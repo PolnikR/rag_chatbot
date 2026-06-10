@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from rag.models import SearchResult
+from rag.rerankings import create_reranker
+from rag.rerankings.base import BaseReranker
 from rag.retrieval.bm25 import BM25Retriever
 from rag.retrieval.hybrid import HybridRetriever
-from rag.retrieval.reranking import SimpleReranker
 from rag.retrieval.vector import (
     ChromaVectorRetriever,
     OpenAIEmbeddingClient,
@@ -15,7 +16,7 @@ class HybridSearchPipeline:
     def __init__(
         self,
         hybrid_retriever: HybridRetriever,
-        reranker: SimpleReranker,
+        reranker: BaseReranker,
     ):
         self.hybrid_retriever = hybrid_retriever
         self.reranker = reranker
@@ -26,6 +27,7 @@ class HybridSearchPipeline:
         collection,
         embedding_client: OpenAIEmbeddingClient,
         fusion_k: int = 60,
+        reranker_mode: str = "simple",
     ) -> "HybridSearchPipeline":
         chunks = load_chunks_from_chroma(collection)
 
@@ -45,7 +47,7 @@ class HybridSearchPipeline:
 
         return cls(
             hybrid_retriever=hybrid_retriever,
-            reranker=SimpleReranker(),
+            reranker=create_reranker(reranker_mode),
         )
 
     def retrieve(

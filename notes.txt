@@ -1,1 +1,3 @@
 next reranking methods
+
+=> zaviezt indexacui podla reranking 

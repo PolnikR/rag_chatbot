@@ -26,6 +26,7 @@ def retrieve_context(
     top_k: int,
     retrieval_mode: str,
     candidate_k: int,
+    reranker_mode: str = "simple",
 ) -> tuple[str, list[SearchResult], int, float]:
     retrieval_start = time.perf_counter()
     query_embedding_tokens = 0
@@ -84,12 +85,26 @@ def retrieve_context(
         retrieval_pipeline = HybridSearchPipeline.from_chroma(
             collection=collection,
             embedding_client=openai_embedding_client,
+            reranker_mode=reranker_mode,
         )
         retrieval_results = retrieval_pipeline.retrieve(
             query=question,
             top_k=top_k,
             candidate_k=candidate_k,
         )
+        retrieval_results = [
+            SearchResult(
+                chunk_id=result.chunk_id,
+                text=result.text,
+                score=result.score,
+                metadata={
+                    **result.metadata,
+                    "retrieval_mode": "hybrid",
+                    "reranker_mode": reranker_mode,
+                },
+            )
+            for result in retrieval_results
+        ]
         query_embedding_tokens = estimate_tokens(question)
     else:
         raise ValueError(f"Unsupported retrieval mode: {retrieval_mode}")
@@ -113,6 +128,7 @@ def run_rag(
     top_k: int,
     retrieval_mode: str,
     candidate_k: int,
+    reranker_mode: str = "simple",
 ) -> dict:
     load_dotenv()
 
@@ -132,6 +148,7 @@ def run_rag(
         top_k=top_k,
         retrieval_mode=retrieval_mode,
         candidate_k=candidate_k,
+        reranker_mode=reranker_mode,
     )
 
     if not retrieval_results:

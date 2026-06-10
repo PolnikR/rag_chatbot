@@ -2,3 +2,5 @@ openai
 chromadb
 python-dotenv
 streamlit
+sentence-transformers
+torchvision

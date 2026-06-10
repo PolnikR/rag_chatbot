@@ -20,6 +20,7 @@ def main() -> None:
             top_k=args.top_k,
             retrieval_mode=args.retrieval_mode,
             candidate_k=args.candidate_k,
+            reranker_mode=args.reranker_mode,
             show_stats=not args.no_stats,
         )
         return
@@ -41,6 +42,7 @@ def main() -> None:
             top_k=args.top_k,
             retrieval_mode=args.retrieval_mode,
             candidate_k=args.candidate_k,
+            reranker_mode=args.reranker_mode,
             show_stats=not args.no_stats,
         )
 

@@ -28,6 +28,7 @@ def query_rag(
     top_k: int,
     retrieval_mode: str,
     candidate_k: int,
+    reranker_mode: str,
     show_stats: bool,
 ) -> None:
     result = run_rag(
@@ -40,6 +41,7 @@ def query_rag(
         top_k=top_k,
         retrieval_mode=retrieval_mode,
         candidate_k=candidate_k,
+        reranker_mode=reranker_mode,
     )
 
     print("\nAnswer")
@@ -85,5 +87,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--candidate-k", type=int, default=20)
     parser.add_argument("--retrieval-mode", choices=["vector", "bm25", "hybrid"], default="hybrid")
+    parser.add_argument(
+        "--reranker-mode",
+        choices=["none", "simple", "cross_encoder", "cohere", "voyage", "jina", "bge", "colbert"],
+        default="simple",
+        help="Reranker used only for hybrid retrieval.",
+    )
     parser.add_argument("--no-stats", action="store_true", help="Hide latency and cost stats.")
     return parser.parse_args()

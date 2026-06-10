@@ -17,6 +17,13 @@ STOP_WORDS = {
 }
 
 
+# Princip: jednoduchy lokalny reranking bez dalsieho modelu.
+# Kandidatov zoradi podla prekryvu slov z otazky, dvojic slov a toho, ci sa
+# dolezite slova nachadzaju skor v texte. Je rychly, ale nechape vyznam tak
+# dobre ako cross-encoder.
+# Vhodne pouzitie: lokalny prototyp, male datasety a rychle porovnanie bez API
+# klucov. Pre slovencinu je pouzitelny ako lacny baseline, nie ako najlepsia
+# presnost.
 class SimpleReranker:
     def rerank(
         self,
@@ -49,6 +56,7 @@ class SimpleReranker:
                 metadata={
                     **result.metadata,
                     "pre_rerank_score": result.score,
+                    "reranker": "simple",
                     "term_overlap": term_overlap,
                     "bigram_matches": bigram_matches,
                     "position_boost": position_boost,
