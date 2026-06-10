@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import re
-
 from rag.models import SearchResult
+from rag.retrieval.bm25 import analyze_text, expand_query_terms
 
 
 STOP_WORDS = {
@@ -10,9 +9,12 @@ STOP_WORDS = {
     "when", "where", "do", "does", "for", "of", "in", "to", "and", "or",
     "on", "at", "by", "it", "its", "this", "that", "with", "from", "be",
     "has", "have", "had", "not", "but",
+    "a", "ak", "aka", "ake", "aky", "ako", "alebo", "aj", "bez", "bol",
+    "bola", "boli", "bolo", "by", "cez", "co", "do", "je", "jeho", "jej",
+    "ked", "kde", "ktora", "ktore", "ktory", "ma", "na", "nad", "nie",
+    "od", "pod", "podla", "po", "pre", "pri", "sa", "si", "su", "ta",
+    "tak", "te", "ten", "to", "v", "vo", "za", "ze",
 }
-
-TOKEN_PATTERN = re.compile(r"\w+", re.UNICODE)
 
 
 class SimpleReranker:
@@ -27,15 +29,14 @@ class SimpleReranker:
 
         reranked = []
         for result in results:
-            text = result.text.lower()
-            text_terms = set(self._tokens(text))
+            text_terms = self._content_terms(result.text)
 
             term_overlap = len(query_terms & text_terms)
-            bigram_matches = sum(1 for bigram in query_bigrams if bigram in text)
-            position_boost = self._position_boost(query_terms, text)
+            bigram_matches = len(query_bigrams & self._bigrams(result.text))
+            position_boost = self._position_boost(query_terms, result.text)
 
             rerank_score = (
-                result.score * 5.0
+                result.score * 20.0
                 + term_overlap * 1.0
                 + bigram_matches * 2.0
                 + position_boost
@@ -58,33 +59,36 @@ class SimpleReranker:
         return reranked[:top_k] if top_k is not None else reranked
 
     def _content_terms(self, text: str) -> set[str]:
+        expanded_terms = expand_query_terms(analyze_text(text))
         return {
             token
-            for token in self._tokens(text)
+            for token in expanded_terms
             if token not in STOP_WORDS
         }
 
-    def _bigrams(self, text: str) -> set[str]:
+    def _bigrams(self, text: str) -> set[tuple[str, str]]:
         tokens = [
             token
-            for token in self._tokens(text)
+            for token in analyze_text(text)
             if token not in STOP_WORDS
         ]
         return {
-            f"{tokens[index]} {tokens[index + 1]}"
+            (tokens[index], tokens[index + 1])
             for index in range(len(tokens) - 1)
         }
 
     def _position_boost(self, query_terms: set[str], text: str) -> float:
         score = 0.0
-        early_cutoff = max(1, len(text) // 3)
+        text_tokens = analyze_text(text)
+        early_cutoff = max(1, len(text_tokens) // 3)
 
         for term in query_terms:
-            position = text.find(term)
-            if 0 <= position < early_cutoff:
+            try:
+                position = text_tokens.index(term)
+            except ValueError:
+                continue
+
+            if position < early_cutoff:
                 score += 0.5
 
         return score
-
-    def _tokens(self, text: str) -> list[str]:
-        return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
